@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<script src="bridge.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#16407f">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>تسویه تنخواه ماموریت</title>
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--line:#d9dee8;--pri:#1f4e9c;--pri2:#e8effb;--txt:#1d2433;--mut:#6b7587;--red:#c0392b;--grn:#1e8449}
+*{box-sizing:border-box}
+body{margin:0;font-family:Tahoma,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
+header.top{background:var(--pri);color:#fff;padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+header.top h1{font-size:17px;margin:0 0 0 auto}
+button{font-family:inherit;font-size:13px;border:1px solid var(--line);background:#fff;color:var(--txt);padding:7px 12px;border-radius:7px;cursor:pointer}
+button:hover{background:var(--pri2)}
+button.pri{background:var(--pri);color:#fff;border-color:var(--pri)}
+button.pri:hover{background:#173d7a}
+header.top button{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff}
+header.top button:hover{background:rgba(255,255,255,.25)}
+button.danger{color:var(--red)}
+.layout{display:flex;gap:14px;padding:14px;align-items:flex-start}
+aside{width:260px;flex:none;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px}
+aside h2{font-size:14px;margin:4px 4px 10px}
+.mi{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:8px;cursor:pointer}
+.mi:hover{background:var(--pri2)}
+.mi.act{border-color:var(--pri);background:var(--pri2)}
+.mi b{display:block;margin-bottom:3px}
+.mi small{color:var(--mut)}
+main{flex:1;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+.card h3{margin:0 0 10px;font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+label.f{display:block;font-size:12px;color:var(--mut)}
+label.f input,label.f select,label.f textarea{display:block;width:100%;margin-top:3px;font-family:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:6px;color:var(--txt);background:#fff}
+.wrap{overflow-x:auto}
+table.ex{width:100%;border-collapse:collapse;min-width:420px}
+table.ex th{background:var(--pri2);font-size:12px;padding:7px 4px;border:1px solid var(--line);white-space:nowrap}
+table.ex td{border:1px solid var(--line);padding:0}
+table.ex td.idx{text-align:center;color:var(--mut);width:34px}
+table.ex input{width:100%;border:0;padding:8px 6px;font-family:inherit;font-size:13px;background:transparent}
+table.ex td input[data-ef=desc]{border-top:1px dashed var(--line);font-size:12px;color:#445}
+table.ex input:focus{outline:2px solid var(--pri);background:#fffdf3}
+table.ex input[data-ef=amount]{text-align:left;direction:ltr;font-weight:bold}
+table.ex input[data-ef=date]{width:92px;direction:ltr;text-align:center}
+table.ex td.del{width:34px;text-align:center}
+.x{border:0;background:none;color:var(--red);padding:4px 8px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sumgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.layout{flex-direction:column}aside{width:100%}.sumgrid{grid-template-columns:1fr}}
+table.sm{width:100%;border-collapse:collapse}
+table.sm td{padding:6px 8px;border-bottom:1px solid var(--line)}
+table.sm td:last-child{text-align:left;font-weight:bold}
+.res{font-size:15px;padding:10px;border-radius:8px;margin-top:8px;font-weight:bold}
+.res.ok{background:#e6f4ea;color:var(--grn)}
+.res.bad{background:#fdecea;color:var(--red)}
+.empty{text-align:center;color:var(--mut);padding:50px 10px}
+.modal{position:fixed;top:0;right:0;bottom:0;left:0;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:14px}
+.modal.show{display:flex}
+.modal .box{background:#fff;border-radius:12px;padding:18px;width:520px;max-width:100%;max-height:92vh;overflow:auto}
+.modal h3{margin-top:0}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:9px 16px;border-radius:8px;display:none;z-index:99}
+#printArea{display:none}
+.lay2{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;align-items:start;margin-bottom:14px}
+.lay2>.card{margin-bottom:0}
+.stackcol{display:flex;flex-direction:column;gap:14px}
+.stackcol .card{margin-bottom:0}
+.stackcol .grid{grid-template-columns:1fr}
+.stack>div{margin-bottom:14px}
+@media(max-width:1200px){.lay2{grid-template-columns:1fr}}
+.li{display:flex;gap:6px;margin-bottom:6px}
+.li input{flex:1;font-family:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:6px}
+table.tr{width:100%;border-collapse:collapse}
+table.tr th{background:var(--pri2);font-size:12px;padding:7px 4px;border:1px solid var(--line)}
+table.tr td{border:1px solid var(--line);padding:0}
+table.tr input{width:100%;border:0;padding:8px 6px;font-family:inherit;font-size:13px;background:transparent}
+table.tr input:focus{outline:2px solid var(--pri);background:#fffdf3}
+table.tr input[data-lf=from],table.tr input[data-lf=to]{direction:ltr;text-align:center}
+table.tr td.del{width:34px;text-align:center}
+table.tr input[data-lf=date]{direction:ltr;text-align:center}
+table.tr input[data-lf=amount]{direction:ltr;text-align:left;font-weight:bold}
+@media print{.pf+.pf{page-break-before:always}}
+.pf table.dbl th,.pf table.dbl td{font-size:9.5pt;padding:3px 5px}
+.pf .sub2{text-align:center;font-weight:bold;font-size:11pt;margin:0 0 6px;height:8mm;line-height:8mm}
+.pf table.dbl.det{margin:0}
+.pf table.dbl.det th{font-size:var(--fs);padding:0 4px;height:6mm;line-height:1}
+.pf table.dbl.det td{font-size:var(--fs);padding:0 4px;height:var(--rh);line-height:1;white-space:nowrap;overflow:hidden}
+.pf table.dbl.det tr{height:var(--rh)}
+.pf table.dbl td:nth-child(4),.pf table.dbl th:nth-child(4){border-right:2.5px solid #000}
+@media print{
+  @page{size:A4;margin:12mm}
+  body{background:#fff}
+  #app,.modal,.toast{display:none!important}
+  #printArea{display:block}
+}
+/* print form */
+.pf{font-family:Tahoma,Arial,sans-serif;color:#000;font-size:11pt}
+.pf h1{text-align:center;font-size:15pt;margin:0 0 4px}
+.pf .sub{text-align:center;margin-bottom:10px;font-size:10.5pt}
+.pf table{width:100%;border-collapse:collapse;margin-bottom:10px}
+.pf th,.pf td{border:1px solid #000;padding:4px 6px;font-size:10pt;vertical-align:top}
+.pf th{background:#e6e6e6}
+.pf td.n{text-align:left;white-space:nowrap}
+.pf td.c{text-align:center}
+.pf thead{display:table-header-group}
+.pf tr{page-break-inside:avoid}
+.pf .info td{border:1px solid #000}
+.pf .info td.k{background:#f0f0f0;width:22%;font-weight:bold}
+.pf .tot td{font-weight:bold;background:#f0f0f0}
+.pf .sign{display:flex;gap:10px;margin-top:18px;page-break-inside:avoid}
+.pf .sign div{flex:1;border:1px solid #000;height:34mm;padding:6px;text-align:center;font-size:10.5pt}
+.pf .sign b{display:block;margin-bottom:4px}
+.pf .sign span{display:block;margin-top:2px;font-size:10pt}
+.pf .sign i{display:block;margin-top:14mm;font-style:normal;font-size:9pt;color:#444}
+.pf .two{display:flex;gap:12px;align-items:flex-start;page-break-inside:avoid}
+.pf .two>div{flex:1}
+.swbar{position:sticky;top:0;z-index:100;display:flex;gap:4px;background:#0e2a57;padding:4px;height:40px;box-sizing:border-box}
+.swbar a{flex:1;display:flex;align-items:center;justify-content:center;color:#cdd9ee;text-decoration:none;border-radius:8px;font-size:13px;font-family:Tahoma,Arial,sans-serif}
+.swbar a.on{background:#fff;color:#16407f;font-weight:bold}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="swbar"><a href="personal.html">💼 دخل و خرج شخصی</a><a href="tankhah.html" class="on">🧾 تنخواه ماموریت</a></div>
+  <header class="top">
+    <h1>تسویه تنخواه ماموریت</h1>
+    <button id="btnSettings">⚙ تنظیمات و امضاها</button>
+    <button id="btnExport">⬇ خروجی اکسل</button>
+    <button id="btnImport">⬆ ورود از اکسل</button>
+    <button id="btnPrint">🖨 چاپ فرم تسویه</button>
+    <input type="file" id="fileIn" accept=".xlsx" style="display:none">
+  </header>
+  <div class="layout">
+    <aside>
+      <h2>ماموریت‌ها</h2>
+      <div id="mlist"></div>
+      <button class="pri" id="btnNew" style="width:100%">+ ماموریت جدید</button>
+    </aside>
+    <main id="main"></main>
+  </div>
+</div>
+
+<datalist id="cats"></datalist>
+
+<div class="modal" id="mSet"><div class="box">
+  <h3>تنظیمات فرم</h3>
+  <div class="grid">
+    <label class="f">واحد پول<select id="s_unit"><option>ریال</option><option>تومان</option></select></label>
+    <label class="f">تعداد ردیف هر ستون در هر برگ A4 (ریز هزینه‌ها، ۱۰ تا ۷۰)<input id="s_perCol" type="number" min="10" max="70"></label>
+    <label class="f">نام مدیر پروژه (امضا ۱)<input id="s_sig1"></label>
+    <label class="f">نام مدیر صنعت (امضا ۲)<input id="s_sig2"></label>
+    <label class="f">نام مدیر گروه (امضا ۳)<input id="s_sig3"></label>
+  </div>
+  <div class="row"><button class="pri" id="setOk">ذخیره</button><button id="setCancel">بستن</button></div>
+</div></div>
+
+<div class="modal" id="mImp"><div class="box">
+  <h3>ورود از اکسل</h3>
+  <p id="impInfo"></p>
+  <div class="row">
+    <button class="pri" id="impAdd">افزودن به داده‌های فعلی</button>
+    <button class="danger" id="impRep">جایگزینی همه داده‌ها</button>
+    <button id="impCancel">انصراف</button>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+//#XLSX-START
+/* ---------- کتابخانه کوچک خواندن/نوشتن xlsx (بدون نیاز به اینترنت) ---------- */
+const _enc=new TextEncoder(), _dec=new TextDecoder();
+const _CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=_CRC[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+function xmlEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function xmlUnesc(s){return s.replace(/&#x([0-9a-fA-F]+);/g,(_,h)=>String.fromCodePoint(parseInt(h,16))).replace(/&#(\d+);/g,(_,d)=>String.fromCodePoint(+d)).replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&')}
+
+function zipStore(files){
+  const parts=[],cds=[];let off=0;
+  const dDate=((2026-1980)<<9)|(1<<5)|1;
+  for(const f of files){
+    const name=_enc.encode(f.name),crc=crc32(f.data),sz=f.data.length;
+    const lh=new Uint8Array(30+name.length),v=new DataView(lh.buffer);
+    v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0x0800,true);v.setUint16(8,0,true);
+    v.setUint16(10,0,true);v.setUint16(12,dDate,true);v.setUint32(14,crc,true);v.setUint32(18,sz,true);v.setUint32(22,sz,true);
+    v.setUint16(26,name.length,true);v.setUint16(28,0,true);lh.set(name,30);
+    parts.push(lh,f.data);
+    const ch=new Uint8Array(46+name.length),c=new DataView(ch.buffer);
+    c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(10,0,true);
+    c.setUint16(12,0,true);c.setUint16(14,dDate,true);c.setUint32(16,crc,true);c.setUint32(20,sz,true);c.setUint32(24,sz,true);
+    c.setUint16(28,name.length,true);c.setUint32(42,off,true);ch.set(name,46);
+    cds.push(ch);off+=lh.length+sz;
+  }
+  let cdSize=0;for(const c of cds)cdSize+=c.length;
+  const e=new Uint8Array(22),ev=new DataView(e.buffer);
+  ev.setUint32(0,0x06054b50,true);ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);ev.setUint32(12,cdSize,true);ev.setUint32(16,off,true);
+  const all=[...parts,...cds,e];let tot=0;for(const p of all)tot+=p.length;
+  const out=new Uint8Array(tot);let o=0;for(const p of all){out.set(p,o);o+=p.length}
+  return out;
+}
+async function inflateRaw(u){
+  const s=new Blob([u]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+async function unzip(u){
+  const v=new DataView(u.buffer,u.byteOffset,u.byteLength);
+  let e=-1;for(let i=u.length-22;i>=Math.max(0,u.length-70000);i--){if(v.getUint32(i,true)===0x06054b50){e=i;break}}
+  if(e<0)throw new Error('فایل xlsx معتبر نیست');
+  const n=v.getUint16(e+10,true);let p=v.getUint32(e+16,true);const out={};
+  for(let i=0;i<n;i++){
+    if(v.getUint32(p,true)!==0x02014b50)throw new Error('ساختار zip خراب است');
+    const method=v.getUint16(p+10,true),cs=v.getUint32(p+20,true),nl=v.getUint16(p+28,true),el=v.getUint16(p+30,true),cl=v.getUint16(p+32,true),lo=v.getUint32(p+42,true);
+    const name=_dec.decode(u.subarray(p+46,p+46+nl));
+    const lnl=v.getUint16(lo+26,true),lel=v.getUint16(lo+28,true),ds=lo+30+lnl+lel;
+    const raw=u.subarray(ds,ds+cs);
+    out[name]=method===0?raw:method===8?await inflateRaw(raw):null;
+    p+=46+nl+el+cl;
+  }
+  return out;
+}
+function colName(i){let s='';i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s}
+function colIndex(ref){const m=/^([A-Z]+)/.exec(ref);let n=0;for(const ch of m[1])n=n*26+ch.charCodeAt(0)-64;return n-1}
+function sheetXml(sh){
+  let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView rightToLeft="1" workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>';
+  if(sh.widths)x+='<cols>'+sh.widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')+'</cols>';
+  x+='<sheetData>';
+  sh.rows.forEach((r,ri)=>{
+    x+=`<row r="${ri+1}">`;
+    r.forEach((c,ci)=>{
+      if(c===null||c===undefined||c==='')return;
+      const ref=colName(ci)+(ri+1);
+      if(ri===0)x+=`<c r="${ref}" s="1" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(c)}</t></is></c>`;
+      else if(typeof c==='number')x+=`<c r="${ref}" s="2"><v>${c}</v></c>`;
+      else x+=`<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(c)}</t></is></c>`;
+    });
+    x+='</row>';
+  });
+  return x+'</sheetData></worksheet>';
+}
+function buildXlsx(sheets){
+  const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  const f=[];
+  const add=(n,s)=>f.push({name:n,data:_enc.encode(s)});
+  add('[Content_Types].xml',H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')+'</Types>');
+  add('_rels/.rels',H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
+  add('xl/workbook.xml',H+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets>'+sheets.map((s,i)=>`<sheet name="${xmlEsc(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')+'</sheets></workbook>');
+  add('xl/_rels/workbook.xml.rels',H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')+`<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
+  add('xl/styles.xml',H+'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Tahoma"/></font><font><b/><sz val="11"/><name val="Tahoma"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFD9E2F3"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center"/></xf><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>');
+  sheets.forEach((s,i)=>add(`xl/worksheets/sheet${i+1}.xml`,sheetXml(s)));
+  return zipStore(f);
+}
+function _attr(tag,name){const m=new RegExp('(?:^|\\s)'+name+'="([^"]*)"').exec(tag);return m?xmlUnesc(m[1]):null}
+function _tText(x){let s='';const re=/<t\b[^>]*>([\s\S]*?)<\/t>|<t\b[^>]*\/>/g;let m;while((m=re.exec(x)))s+=m[1]?xmlUnesc(m[1]):'';return s}
+async function readXlsx(buf){
+  const files=await unzip(new Uint8Array(buf));
+  const txt=n=>files[n]?_dec.decode(files[n]):null;
+  const wb=txt('xl/workbook.xml'),rels=txt('xl/_rels/workbook.xml.rels');
+  if(!wb||!rels)throw new Error('این فایل اکسل معتبر نیست');
+  const relMap={};(rels.match(/<Relationship\b[^>]*>/g)||[]).forEach(t=>{relMap[_attr(t,'Id')]=_attr(t,'Target')});
+  let shared=[];const ss=txt('xl/sharedStrings.xml');
+  if(ss){(ss.match(/<si\b[\s\S]*?<\/si>|<si\b[^>]*\/>/g)||[]).forEach(si=>shared.push(_tText(si)))}
+  const out=[];
+  for(const t of (wb.match(/<sheet\b[^>]*>/g)||[])){
+    const name=_attr(t,'name'),rid=_attr(t,'r:id');let tg=relMap[rid]||'';
+    tg=tg.replace(/^\//,'');if(!tg.startsWith('xl/'))tg='xl/'+tg;
+    const sx=txt(tg);const rows=[];
+    if(sx){
+      const re=/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;let m;
+      while((m=re.exec(sx))){
+        const at=m[1],body=m[2]||'';const ref=_attr(at,'r');if(!ref)continue;
+        const ty=_attr(at,'t');const ri=parseInt(ref.replace(/^[A-Z]+/,''))-1,ci=colIndex(ref);
+        let val=null;const vm=/<v>([\s\S]*?)<\/v>/.exec(body);
+        if(ty==='inlineStr')val=_tText(body);
+        else if(vm){const raw=xmlUnesc(vm[1]);
+          if(ty==='s')val=shared[+raw]??'';else if(ty==='str'||ty==='e')val=raw;else if(ty==='b')val=raw==='1'?'TRUE':'FALSE';else{const n=Number(raw);val=isNaN(n)?raw:n}}
+        if(val===null||val==='')continue;
+        (rows[ri]=rows[ri]||[])[ci]=val;
+      }
+    }
+    for(let i=0;i<rows.length;i++)rows[i]=rows[i]||[];
+    out.push({name,rows});
+  }
+  return out;
+}
+function g2j(gy,gm,gd){
+  const gdm=[0,31,59,90,120,151,181,212,243,273,304,334];
+  let jy=gy<=1600?0:979;gy-=gy<=1600?621:1600;
+  const gy2=gm>2?gy+1:gy;
+  let days=365*gy+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400)-80+gd+gdm[gm-1];
+  jy+=33*Math.floor(days/12053);days%=12053;
+  jy+=4*Math.floor(days/1461);days%=1461;
+  if(days>365){jy+=Math.floor((days-1)/365);days=(days-1)%365}
+  const jm=days<186?1+Math.floor(days/31):7+Math.floor((days-186)/30);
+  const jd=1+(days<186?days%31:(days-186)%30);
+  return [jy,jm,jd];
+}
+//#XLSX-END
+
+/* ---------- برنامه ---------- */
+const CATS=['هزینه غذا','هزینه مواد غذایی','هزینه اسکان','هزینه کرایه','هزینه مواد مصرفی','سایر هزینه‌ها'];
+const isCons=c=>String(c||'').trim()===CATS[4];
+const NOINV='هزینه‌های بدون فاکتور';
+const ORDER=[NOINV,...CATS.slice(0,5),CATS[5]];
+const ordIdx=c=>{const i=ORDER.indexOf(String(c||'').trim());return i<0?ORDER.length-1.5:i};
+const KEY='tankhah_app_v1';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const toEn=s=>String(s??'').replace(/[۰-۹]/g,c=>c.charCodeAt(0)-1776).replace(/[٠-٩]/g,c=>c.charCodeAt(0)-1632);
+const num=s=>{const n=parseFloat(toEn(s).replace(/[,٬،\s]/g,''));return isNaN(n)?0:n};
+const fmtP=n=>(Number(n)||0).toLocaleString('fa-IR');
+const fmtE=n=>(Number(n)||0).toLocaleString('en-US');
+const pad=n=>String(n).padStart(2,'0');
+function todayJ(){const d=new Date();const j=g2j(d.getFullYear(),d.getMonth()+1,d.getDate());return j[0]+'/'+pad(j[1])+'/'+pad(j[2])}
+function serialToJ(n){const d=new Date(Date.UTC(1899,11,30)+Math.round(n)*86400000);const j=g2j(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate());return j[0]+'/'+pad(j[1])+'/'+pad(j[2])}
+const normDate=v=>typeof v==='number'?(v>20000?serialToJ(v):String(v)):toEn(v).trim();
+
+function blank(){return{settings:{unit:'ریال',sig1:'',sig2:'',sig3:'',perCol:45},missions:[],cur:null,next:1,nextE:1}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.missions){const b=blank();s.settings=Object.assign(b.settings,s.settings||{});return s}}catch(e){}return blank()}
+let S=load();
+function migrate(){S.missions.forEach(m=>{if(m.carry==null)m.carry=0;m.noinv=m.noinv||[];if(!m.trips){m.trips=[{id:S.nextE++,place:m.place||'',from:m.from||todayJ(),to:m.to||todayJ()}];delete m.place;delete m.from;delete m.to}m.staff=m.staff||[];m.guests=m.guests||[]})}
+migrate();
+function rangeOf(m){const f=m.trips.map(x=>x.from).filter(Boolean).sort(),t=m.trips.map(x=>x.to).filter(Boolean).sort();return (f[0]||'؟')+' تا '+(t[t.length-1]||'؟')}
+const newTrip=(o={})=>Object.assign({id:S.nextE++,place:'',from:todayJ(),to:todayJ()},o);
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const cur=()=>S.missions.find(m=>m.id===S.cur)||null;
+const noTot=m=>(m.noinv||[]).reduce((a,e)=>a+(Number(e.amount)||0),0);
+const total=m=>m.expenses.reduce((a,e)=>a+(Number(e.amount)||0),0)+noTot(m);
+function catSummary(m){
+  const arr=[];m.expenses.forEach(e=>{const c=(e.cat||'نامشخص').trim()||'نامشخص';const f=arr.find(x=>x[0]===c);if(f)f[1]+=Number(e.amount)||0;else arr.push([c,Number(e.amount)||0])});
+  if(m.noinv.length){const f=arr.find(x=>x[0]===NOINV);if(f)f[1]+=noTot(m);else arr.push([NOINV,noTot(m)])}
+  arr.sort((a,b)=>ordIdx(a[0])-ordIdx(b[0]));
+  const o={};arr.forEach(([k,v])=>o[k]=v);return o;
+}
+const avail=m=>(Number(m.carry)||0)+(Number(m.advance)||0);
+const balance=m=>avail(m)-total(m);
+function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>e.style.display='none',2800)}
+
+function newMission(o={}){
+  const prev=S.missions[S.missions.length-1];
+  const m=Object.assign({id:S.next++,title:'ماموریت جدید',carry:prev?balance(prev):0,advance:0,note:'',trips:[newTrip()],staff:[],guests:[],noinv:[],expenses:[]},o);
+  S.missions.push(m);return m;
+}
+function newExp(m,o={}){
+  const last=m.expenses[m.expenses.length-1];
+  const e=Object.assign({id:S.nextE++,cat:last?last.cat:CATS[0],desc:'',amount:0},o);
+  m.expenses.push(e);return e;
+}
+
+function renderCats(){
+  const all=new Set(CATS);S.missions.forEach(m=>m.expenses.forEach(e=>e.cat&&all.add(e.cat)));
+  $('cats').innerHTML=[...all].map(c=>`<option value="${esc(c)}">`).join('');
+}
+function renderSide(){
+  $('mlist').innerHTML=S.missions.map(m=>`<div class="mi ${m.id===S.cur?'act':''}" data-m="${m.id}"><b>${esc(m.title||'(بدون عنوان)')}</b><small>${esc(rangeOf(m))}<br>جمع هزینه: ${fmtP(total(m))}</small></div>`).join('')||'<div class="empty" style="padding:14px">هنوز ماموریتی ثبت نشده</div>';
+}
+function renderMain(){
+  const m=cur(),main=$('main');
+  if(!m){main.innerHTML='<div class="card empty">برای شروع یک ماموریت جدید بسازید.<br><br><button class="pri" data-act="newm">+ ماموریت جدید</button></div>';return}
+  const u=esc(S.settings.unit);
+  main.innerHTML=`
+  <div class="lay2">
+  <div class="stackcol">
+  <section class="card"><h3>هزینه‌ها (${u})</h3>
+   <div class="wrap"><table class="ex"><thead><tr><th>#</th><th>دسته هزینه</th><th>مبلغ</th><th></th></tr></thead><tbody>
+   ${m.noinv.length?`<tr style="background:#f7f9fc"><td class="idx">1</td><td style="padding:8px">${NOINV}</td><td style="padding:8px;font-weight:bold;direction:ltr;text-align:left" id="noFootAmt"></td><td></td></tr>`:''}
+   ${m.expenses.map((e,i)=>`<tr data-id="${e.id}"><td class="idx">${i+1+(m.noinv.length?1:0)}</td>
+    <td><input data-ef="cat" list="cats" value="${esc(e.cat)}"></td>
+    <td><input data-ef="amount" inputmode="numeric" value="${e.amount?fmtE(e.amount):''}"></td>
+    <td class="del"><button class="x" data-del="${e.id}" title="حذف ردیف">✕</button></td></tr>`).join('')}
+   </tbody></table></div>
+   <div class="row"><button class="pri" data-act="adde">+ ردیف هزینه جدید</button><button data-act="sortcat">↕ مرتب‌سازی بر اساس دسته</button><small style="color:var(--mut);align-self:center">در ستون مبلغ، کلید Enter ردیف جدید می‌سازد.</small></div>
+  </section>
+  <section class="card"><h3>${NOINV} (${u})</h3>
+   <small style="color:var(--mut)">این بخش در یک فرم جداگانه با امضای سه مدیر چاپ می‌شود و جمع آن خودکار در فرم اصلی به هزینه‌ها اضافه می‌شود.</small>
+   <div class="wrap" style="margin-top:8px"><table class="tr"><thead><tr><th style="width:34px">#</th><th>عنوان هزینه</th><th style="width:110px">تاریخ</th><th style="width:130px">مبلغ</th><th></th></tr></thead><tbody>
+   ${m.noinv.map((x,i)=>`<tr data-list="noinv" data-rid="${x.id}"><td style="text-align:center;color:var(--mut)">${i+1}</td><td><input data-lf="title" value="${esc(x.title)}"></td><td><input data-lf="date" value="${esc(x.date)}"></td><td><input data-lf="amount" inputmode="numeric" value="${x.amount?fmtE(x.amount):''}"></td><td class="del"><button class="x" data-ldel="1" title="حذف">✕</button></td></tr>`).join('')}
+   </tbody><tfoot><tr><td colspan="3" style="padding:8px"><b>جمع ${NOINV}</b></td><td style="padding:8px;font-weight:bold;direction:ltr;text-align:left" id="noTot"></td><td></td></tr></tfoot></table></div>
+   <div class="row"><button class="pri" data-ladd="noinv">+ ردیف جدید</button></div>
+  </section>
+  </div>
+  <div class="stackcol">
+  <section class="card"><h3>مشخصات ماموریت</h3>
+   <div class="grid">
+    <label class="f">عنوان ماموریت<input data-mf="title" value="${esc(m.title)}"></label>
+    <label class="f">مانده تنخواه ماموریت قبل (${u})<input data-mf="carry" inputmode="numeric" value="${m.carry?fmtE(m.carry):''}" dir="ltr" style="text-align:right"></label>
+    <div><button data-act="getcarry" style="width:100%" title="مانده ماموریت قبلی در لیست را دوباره محاسبه و جایگزین می‌کند">↻ دریافت مانده از ماموریت قبل</button></div>
+    <label class="f">تنخواه جدید واریزشده (${u})<input data-mf="advance" inputmode="numeric" value="${m.advance?fmtE(m.advance):''}" dir="ltr" style="text-align:right"></label>
+    <div class="res ok" style="margin:0">جمع تنخواه در اختیار: <span id="availTxt"></span> ${u}</div>
+    <label class="f">توضیحات<input data-mf="note" value="${esc(m.note)}"></label>
+   </div>
+   <div class="row"><button class="danger" data-act="delm">🗑 حذف این ماموریت</button></div>
+  </section>
+  <section class="card"><h3>محل و تاریخ ماموریت‌ها</h3>
+   <small style="color:var(--mut)">اگر در این دوره چند سفر به مکان‌ها و تاریخ‌های مختلف داشتید، برای هر کدام یک ردیف اضافه کنید.</small>
+   <div class="wrap" style="margin-top:8px"><table class="tr"><thead><tr><th>محل ماموریت</th><th style="width:92px">از تاریخ</th><th style="width:92px">تا تاریخ</th><th></th></tr></thead><tbody>
+   ${m.trips.map(x=>`<tr data-list="trips" data-rid="${x.id}"><td><input data-lf="place" value="${esc(x.place)}"></td><td><input data-lf="from" value="${esc(x.from)}"></td><td><input data-lf="to" value="${esc(x.to)}"></td><td class="del"><button class="x" data-ldel="1" title="حذف">✕</button></td></tr>`).join('')}
+   </tbody></table></div>
+   <div class="row"><button class="pri" data-ladd="trips">+ محل / بازه جدید</button></div>
+  </section>
+  <section class="card"><h3>نفرات</h3><div class="stack">
+   ${[['staff','نفرات ماموریت'],['guests','مهمان مشتری']].map(([k,t])=>`<div><b>${t} (${fmtP(m[k].length)} نفر)</b><div style="margin-top:8px">${m[k].map(x=>`<div class="li" data-list="${k}" data-rid="${x.id}"><input data-lf="name" placeholder="نام و نام خانوادگی" value="${esc(x.name)}"><button class="x" data-ldel="1" title="حذف">✕</button></div>`).join('')}</div><button data-ladd="${k}">+ افزودن</button></div>`).join('')}
+  </div></section>
+  </div>
+  </div>
+  <section class="card"><h3>خلاصه و تسویه</h3><div class="sumgrid"><div id="sumCat"></div><div id="sumRes"></div></div>
+   <div class="row"><button data-act="topersonal">💼 درج نتیجه تسویه در دخل و خرج شخصی</button></div>
+   <small style="color:var(--mut)">اختیاری: اگر هزینه‌ها از تنخواه بیشتر شده و شرکت به شما بدهکار است، همان مبلغ به‌عنوان درآمد «بازپرداخت تنخواه» در بخش شخصی ثبت می‌شود. این دو بخش به‌طور پیش‌فرض کاملاً مستقل‌اند.</small></section>`;
+  updateSummary();
+}
+function updateSummary(){
+  const m=cur();if(!m||!$('sumCat'))return;
+  const by=catSummary(m);
+  const t=total(m),d=balance(m),u=esc(S.settings.unit);
+  if($('noTot'))$('noTot').textContent=fmtE(noTot(m));if($('noFootAmt'))$('noFootAmt').textContent=fmtE(noTot(m));
+  if($('availTxt'))$('availTxt').textContent=fmtP(avail(m));
+  $('sumCat').innerHTML='<table class="sm">'+Object.keys(by).map(k=>`<tr><td>${esc(k)}</td><td>${fmtP(by[k])}</td></tr>`).join('')+`<tr><td><b>جمع کل هزینه‌ها</b></td><td>${fmtP(t)}</td></tr></table>`;
+  $('sumRes').innerHTML=`<table class="sm"><tr><td>مانده تنخواه ماموریت قبل</td><td>${fmtP(m.carry)}</td></tr><tr><td>تنخواه جدید</td><td>${fmtP(m.advance)}</td></tr><tr><td><b>جمع تنخواه در اختیار</b></td><td>${fmtP(avail(m))}</td></tr><tr><td>جمع هزینه‌ها</td><td>${fmtP(t)}</td></tr></table>
+   <div class="res ${d>=0?'ok':'bad'}">${d>=0?'مانده تنخواه (قابل بازگشت به شرکت)':'مازاد هزینه (قابل پرداخت به تنخواه‌دار)'}: ${fmtP(Math.abs(d))} ${u}</div>`;
+}
+function renderAll(){renderCats();renderSide();renderMain()}
+
+/* رویدادها */
+$('mlist').addEventListener('click',e=>{const it=e.target.closest('[data-m]');if(it){S.cur=+it.dataset.m;save();renderAll()}});
+$('btnNew').onclick=()=>{const m=newMission();S.cur=m.id;save();renderAll()};
+const main=$('main');
+main.addEventListener('input',e=>{
+  const t=e.target,m=cur();if(!m)return;
+  const L=t.closest('[data-list]');
+  if(L&&t.dataset.lf){const it=m[L.dataset.list].find(x=>x.id==L.dataset.rid);if(it){const f=t.dataset.lf;it[f]=(f==='from'||f==='to'||f==='date')?toEn(t.value):(f==='amount'?num(t.value):t.value)}save();renderSide();updateSummary();return}
+  if(t.dataset.mf){const f=t.dataset.mf;m[f]=(f==='advance'||f==='carry')?num(t.value):t.value;if(f==='title')renderSide()}
+  else if(t.dataset.ef){const row=t.closest('tr'),ex=m.expenses.find(x=>x.id==row.dataset.id);if(ex){const f=t.dataset.ef;ex[f]=f==='amount'?num(t.value):t.value;}renderSide()}
+  save();updateSummary();
+});
+main.addEventListener('focusout',e=>{
+  const t=e.target;
+  if(t.dataset.ef==='amount'||t.dataset.lf==='amount'||t.dataset.mf==='advance'||t.dataset.mf==='carry'){const n=num(t.value);t.value=n?fmtE(n):''}
+  if(t.dataset.lf==='from'||t.dataset.lf==='to'||t.dataset.lf==='date'){t.value=toEn(t.value)}
+});
+main.addEventListener('click',e=>{
+  const m=cur();
+  const la=e.target.closest('[data-ladd]');
+  if(la&&m){const k=la.dataset.ladd;m[k].push(k==='trips'?newTrip({from:(m.trips.length?m.trips[m.trips.length-1].to:todayJ())}):k==='noinv'?{id:S.nextE++,title:'',date:todayJ(),amount:0}:{id:S.nextE++,name:''});save();renderAll();const rs=document.querySelectorAll('[data-list="'+k+'"]');const lr=rs[rs.length-1];if(lr)lr.querySelector('input').focus();return}
+  const ld=e.target.closest('[data-ldel]');
+  if(ld&&m){const r=ld.closest('[data-list]');const k=r.dataset.list;m[k]=m[k].filter(x=>x.id!=r.dataset.rid);if(k==='trips'&&!m.trips.length)m.trips.push(newTrip());save();renderAll();return}
+  const a=e.target.closest('[data-act]');
+  if(a){
+    if(a.dataset.act==='topersonal'&&m)postPersonal(m);
+    if(a.dataset.act==='newm'){const n=newMission();S.cur=n.id;save();renderAll()}
+    if(a.dataset.act==='adde'&&m){addRow(m)}
+    if(a.dataset.act==='sortcat'&&m){m.expenses=m.expenses.map((x,i)=>({x,i})).sort((a,b)=>ordIdx(a.x.cat)-ordIdx(b.x.cat)||a.i-b.i).map(o=>o.x);save();renderAll();toast('ردیف‌ها بر اساس دسته مرتب شدند')}
+    if(a.dataset.act==='getcarry'&&m){const i=S.missions.indexOf(m);if(i<1){toast('ماموریت قبلی وجود ندارد')}else{m.carry=balance(S.missions[i-1]);save();renderAll();toast('مانده ماموریت «'+S.missions[i-1].title+'» منتقل شد')}}
+    if(a.dataset.act==='delm'&&m&&confirm('ماموریت «'+m.title+'» و همه هزینه‌هایش حذف شود؟')){S.missions=S.missions.filter(x=>x!==m);S.cur=S.missions.length?S.missions[0].id:null;save();renderAll()}
+    return;
+  }
+  const d=e.target.closest('[data-del]');
+  if(d&&m){m.expenses=m.expenses.filter(x=>x.id!=d.dataset.del);save();renderAll()}
+});
+main.addEventListener('keydown',e=>{
+  const t=e.target;
+  if(e.key==='Enter'&&t.dataset.lf==='amount'&&t.closest('[data-list=noinv]')){
+    e.preventDefault();const m=cur(),row=t.closest('tr'),next=row.nextElementSibling;
+    if(next)next.querySelector('[data-lf=title]').focus();else{m.noinv.push({id:S.nextE++,title:'',date:todayJ(),amount:0});save();renderAll();const rs=document.querySelectorAll('[data-list=noinv]');rs[rs.length-1].querySelector('[data-lf=title]').focus()}
+    return;
+  }
+  if(e.key==='Enter'&&t.dataset.ef==='amount'){
+    e.preventDefault();const m=cur(),row=t.closest('tr');
+    const next=row.nextElementSibling;
+    if(next)next.querySelector('[data-ef=cat]').focus();else addRow(m);
+  }
+});
+function addRow(m){newExp(m);save();renderAll();const rows=document.querySelectorAll('table.ex tbody tr');const last=rows[rows.length-1];if(last)last.querySelector('[data-ef=cat]').focus()}
+
+/* تنظیمات */
+const sk=['unit','sig1','sig2','sig3','perCol'];
+$('btnSettings').onclick=()=>{sk.forEach(k=>$('s_'+k).value=S.settings[k]||'');$('mSet').classList.add('show')};
+$('setCancel').onclick=()=>$('mSet').classList.remove('show');
+$('setOk').onclick=()=>{sk.forEach(k=>S.settings[k]=$('s_'+k).value.trim()||(k==='unit'?'ریال':''));save();$('mSet').classList.remove('show');S.settings.perCol=Math.max(10,Math.min(70,parseInt(toEn($('s_perCol').value))||45));save();renderAll();toast('تنظیمات ذخیره شد')};
+
+/* خروجی اکسل */
+const LBL=['واحد پول','نام مدیر پروژه','نام مدیر صنعت','نام مدیر گروه','تعداد ردیف هر ستون در برگ A4'];
+$('btnExport').onclick=()=>{
+  if(!S.missions.length){toast('ماموریتی برای خروجی وجود ندارد');return}
+  const st=S.settings,vals=[st.unit,st.sig1,st.sig2,st.sig3,st.perCol||45];
+  const sheets=[
+    {name:'تنظیمات',widths:[26,40],rows:[['مورد','مقدار'],...LBL.map((l,i)=>[l,vals[i]||''])]},
+    {name:'ماموریت ها',widths:[8,34,22,18,40],rows:[['کد','عنوان ماموریت','مانده از ماموریت قبل','تنخواه جدید','توضیحات'],...S.missions.map(m=>[m.id,m.title,Number(m.carry)||0,Number(m.advance)||0,m.note])]},
+    {name:'هزینه ها',widths:[10,30,24,16],rows:[['کد ماموریت','عنوان ماموریت (فقط نمایشی)','دسته هزینه','مبلغ'],...S.missions.flatMap(m=>m.expenses.map(e=>[m.id,m.title,e.cat,Number(e.amount)||0]))]},
+    {name:'محل و تاریخ',widths:[10,30,28,14,14],rows:[['کد ماموریت','عنوان ماموریت (فقط نمایشی)','محل ماموریت','از تاریخ','تا تاریخ'],...S.missions.flatMap(m=>m.trips.map(x=>[m.id,m.title,x.place,x.from,x.to]))]},
+    {name:'نفرات',widths:[10,30,18,30],rows:[['کد ماموریت','عنوان ماموریت (فقط نمایشی)','نوع','نام'],...S.missions.flatMap(m=>[...m.staff.map(x=>[m.id,m.title,'نفر ماموریت',x.name]),...m.guests.map(x=>[m.id,m.title,'مهمان مشتری',x.name])])]},
+    {name:'بدون فاکتور',widths:[10,30,34,14,16],rows:[['کد ماموریت','عنوان ماموریت (فقط نمایشی)','عنوان هزینه','تاریخ','مبلغ'],...S.missions.flatMap(m=>m.noinv.map(x=>[m.id,m.title,x.title,x.date,Number(x.amount)||0]))]},
+    {name:'خلاصه',widths:[8,34,20,16,20,16,26],rows:[['کد','عنوان ماموریت','مانده از ماموریت قبل','تنخواه جدید','جمع تنخواه در اختیار','جمع هزینه','مانده (+) / مازاد هزینه (-)'],...S.missions.map(m=>[m.id,m.title,Number(m.carry)||0,Number(m.advance)||0,avail(m),total(m),balance(m)])]}
+  ];
+  const data=buildXlsx(sheets);
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  a.download='tankhah_'+todayJ().replace(/\//g,'-')+'.xlsx';document.body.appendChild(a);a.click();a.remove();
+  toast('فایل اکسل ساخته شد');
+};
+
+/* ورود از اکسل */
+let pending=null;
+$('btnImport').onclick=()=>$('fileIn').click();
+$('fileIn').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{
+    const sh=await readXlsx(await f.arrayBuffer());
+    if(sh.length<5)throw new Error('این فایل با قالب خروجی نسخه فعلی برنامه سازگار نیست. دوباره از برنامه خروجی اکسل بگیرید.');
+    pending=parseSheets(sh);
+    $('impInfo').textContent=`در فایل ${pending.missions.length} ماموریت و ${pending.missions.reduce((a,m)=>a+m.expenses.length,0)} ردیف هزینه پیدا شد.`;
+    $('mImp').classList.add('show');
+  }catch(err){alert('خطا در خواندن فایل: '+err.message)}
+};
+function parseSheets(sh){
+  const s=(sh[0].rows.slice(1)).map(r=>r[1]);
+  const settings=sh[0].rows.length>1?{unit:s[0],sig1:s[1],sig2:s[2],sig3:s[3],perCol:s[4]}:null;
+  if(settings)for(const k in settings)settings[k]=settings[k]==null?'':String(settings[k]);
+  const byCode={},list=[];
+  const mk=(code,title)=>({code,title:title||('ماموریت بدون عنوان (کد '+code+')'),carry:0,advance:0,note:'',trips:[],staff:[],guests:[],noinv:[],expenses:[]});
+  const find=(r)=>{const code=r[0]!=null?String(r[0]).trim():'',title=String(r[1]??'').trim();let m=byCode[code]||list.find(x=>x.title===title);if(!m){m=mk(code,title);list.push(m);if(code)byCode[code]=m}return m};
+  const ok=r=>r.length&&!r.every(x=>x==null);
+  sh[1].rows.slice(1).forEach(r=>{
+    if(!ok(r))return;
+    const m=mk(r[0]!=null?String(r[0]).trim():'',String(r[1]??'ماموریت'));m.carry=num(r[2]??0);m.advance=num(r[3]??0);m.note=String(r[4]??'');
+    list.push(m);if(m.code)byCode[m.code]=m;
+  });
+  sh[2].rows.slice(1).forEach(r=>{if(!ok(r))return;find(r).expenses.push({cat:String(r[2]??''),desc:'',amount:num(r[3]??0)})});
+  sh[3].rows.slice(1).forEach(r=>{if(!ok(r))return;find(r).trips.push({place:String(r[2]??''),from:normDate(r[3]??''),to:normDate(r[4]??'')})});
+  sh[4].rows.slice(1).forEach(r=>{if(!ok(r)||r[3]==null)return;const m=find(r);(String(r[2]??'').includes('مهمان')?m.guests:m.staff).push({name:String(r[3])})});
+  const ni=sh.find(x=>x.name.includes('بدون'));
+  if(ni)ni.rows.slice(1).forEach(r=>{if(!ok(r))return;find(r).noinv.push({title:String(r[2]??''),date:normDate(r[3]??''),amount:num(r[4]??0)})});
+  return{settings,missions:list};
+}
+function applyImport(replace){
+  if(!pending)return;
+  if(replace){const keep=blank();S=keep;if(pending.settings)Object.assign(S.settings,pending.settings);if(!S.settings.unit)S.settings.unit='ریال'}
+  pending.missions.forEach(pm=>{
+    const m=newMission({title:pm.title,carry:pm.carry,advance:pm.advance,note:pm.note,
+      trips:pm.trips.length?pm.trips.map(x=>newTrip(x)):[newTrip()],staff:pm.staff.map(x=>({id:S.nextE++,name:x.name})),guests:pm.guests.map(x=>({id:S.nextE++,name:x.name})),noinv:(pm.noinv||[]).map(x=>({id:S.nextE++,title:x.title,date:x.date,amount:x.amount}))});
+    pm.expenses.forEach(e=>newExp(m,e));
+  });
+  if(!cur()&&S.missions.length)S.cur=S.missions[0].id;
+  pending=null;save();renderAll();$('mImp').classList.remove('show');toast('ورود اطلاعات انجام شد');
+}
+$('impAdd').onclick=()=>applyImport(false);
+$('impRep').onclick=()=>{if(confirm('همه داده‌های فعلی حذف و با فایل اکسل جایگزین می‌شود. مطمئن هستید؟'))applyImport(true)};
+$('impCancel').onclick=()=>{pending=null;$('mImp').classList.remove('show')};
+
+/* چاپ */
+$('btnPrint').onclick=()=>{
+  const m=cur();if(!m){toast('ابتدا یک ماموریت انتخاب کنید');return}
+  const st=S.settings,u=esc(st.unit),t=total(m);
+  const by=catSummary(m);
+  const rowsArr=[...m.expenses.map(e=>({cat:e.cat,desc:'',amount:e.amount})),...(m.noinv.length?[{cat:NOINV,desc:'',amount:noTot(m)}]:[])].map((x,k)=>({...x,k})).sort((a,b)=>ordIdx(a.cat)-ordIdx(b.cat)||a.k-b.k);
+  const perCol=Math.max(10,Math.min(70,parseInt(toEn(st.perCol))||45));
+  const INLINE_MAX=20;
+  const inline=rowsArr.length<=INLINE_MAX;
+  const dbl=(list,off,cr,withTot,det)=>{
+    const cell=(e,k)=>e?`<td class="c">${fmtP(off+k+1)}</td><td>${esc(e.cat)}</td><td class="n">${fmtP(e.amount)}</td>`:'<td></td><td></td><td></td>';
+    let r='';for(let k=0;k<cr;k++)r+='<tr>'+cell(list[k],k)+cell(list[k+cr],k+cr)+'</tr>';
+    const rh=Math.max(4,238/perCol),style=det?` style="--rh:${rh.toFixed(2)}mm;--fs:${rh<5?8:9}pt"`:'';
+    return `<table class="dbl${det?' det':''}"${style}><thead><tr><th style="width:6%">ردیف</th><th>دسته هزینه</th><th style="width:14%">مبلغ (${u})</th><th style="width:6%">ردیف</th><th>دسته هزینه</th><th style="width:14%">مبلغ (${u})</th></tr></thead>
+   <tbody>${r||'<tr><td colspan="6" class="c">هزینه‌ای ثبت نشده است</td></tr>'}</tbody>${withTot?`<tfoot><tr class="tot"><td colspan="5">جمع کل هزینه‌ها</td><td class="n">${fmtP(t)}</td></tr></tfoot>`:''}</table>`;
+  };
+  const pages=Math.ceil(rowsArr.length/(2*perCol));
+  const coverTable=inline?dbl(rowsArr,0,Math.ceil(rowsArr.length/2),true,false):`<p style="margin:8px 0;font-size:10.5pt">ریز ردیف‌های هزینه (۱ تا ${fmtP(rowsArr.length)}) در ${fmtP(pages)} برگ پیوست آمده است.</p>`;
+  let detailPages='';
+  if(!inline)for(let pg=0;pg<pages;pg++){
+    const off=pg*2*perCol,chunk=rowsArr.slice(off,off+2*perCol),last=pg===pages-1;
+    const cr=last?Math.min(perCol,Math.ceil(chunk.length/2)):perCol;
+    detailPages+=`<div class="pf"><div class="sub2">ریز هزینه‌ها - ${esc(m.title)} - برگ ${fmtP(pg+1)} از ${fmtP(pages)}</div>${dbl(chunk,off,cr,last,true)}</div>`;
+  }
+  const sg=`<div class="sign">
+    <div><b>مدیر پروژه</b><span>${esc(st.sig1)}</span><i>امضا و تاریخ</i></div>
+    <div><b>مدیر صنعت</b><span>${esc(st.sig2)}</span><i>امضا و تاریخ</i></div>
+    <div><b>مدیر گروه</b><span>${esc(st.sig3)}</span><i>امضا و تاریخ</i></div>
+   </div>`;
+  $('printArea').innerHTML=`<div class="pf">
+   <h1>فرم تسویه تنخواه و گزارش هزینه‌کرد ماموریت</h1>
+   
+   <table class="info"><tr><td class="k">عنوان ماموریت</td><td colspan="3">${esc(m.title)}</td></tr>
+   ${m.staff.length?`<tr><td class="k">نفرات ماموریت (${fmtP(m.staff.length)} نفر)</td><td colspan="3">${m.staff.map(x=>esc(x.name)).join('، ')}</td></tr>`:''}
+   ${m.guests.length?`<tr><td class="k">مهمان مشتری (${fmtP(m.guests.length)} نفر)</td><td colspan="3">${m.guests.map(x=>esc(x.name)).join('، ')}</td></tr>`:''}
+   ${m.note?`<tr><td class="k">توضیحات</td><td colspan="3">${esc(m.note)}</td></tr>`:''}</table>
+   <table><thead><tr><th>محل ماموریت</th><th style="width:20%">از تاریخ</th><th style="width:20%">تا تاریخ</th></tr></thead><tbody>${m.trips.map(x=>`<tr><td>${esc(x.place)}</td><td class="c">${esc(x.from)}</td><td class="c">${esc(x.to)}</td></tr>`).join('')}</tbody></table>
+   ${coverTable}
+   <div class="two"><div><table><thead><tr><th>دسته هزینه</th><th>جمع (${u})</th></tr></thead><tbody>${Object.keys(by).map(k=>`<tr><td>${esc(k)}</td><td class="n">${fmtP(by[k])}</td></tr>`).join('')}</tbody>${inline?'':`<tfoot><tr class="tot"><td>جمع کل هزینه‌ها</td><td class="n">${fmtP(t)}</td></tr></tfoot>`}</table></div>
+   <div></div></div>
+   ${sg}</div>${detailPages}`;
+  if(m.noinv.length)$('printArea').innerHTML+=`<div class="pf"><h1>فرم هزینه‌های بدون فاکتور</h1>
+   <table class="info"><tr><td class="k">عنوان ماموریت</td><td>${esc(m.title)}</td></tr></table>
+   <table><thead><tr><th style="width:8%">ردیف</th><th>عنوان هزینه</th><th style="width:18%">تاریخ</th><th style="width:22%">مبلغ (${u})</th></tr></thead>
+   <tbody>${m.noinv.map((x,i)=>`<tr><td class="c">${fmtP(i+1)}</td><td>${esc(x.title)}</td><td class="c">${esc(x.date)}</td><td class="n">${fmtP(x.amount)}</td></tr>`).join('')}</tbody>
+   <tfoot><tr class="tot"><td colspan="3">جمع ${NOINV}</td><td class="n">${fmtP(noTot(m))}</td></tr></tfoot></table>
+   ${sg}</div>`;
+  window.print();
+};
+
+
+/* درج اختیاری نتیجه تسویه در بخش دخل و خرج شخصی (فقط وقتی دکمه زده شود) */
+function postPersonal(m){
+  const d=balance(m);
+  if(d>=0){toast('مانده تنخواه به شرکت بازگردانده می‌شود؛ چیزی در بخش شخصی درج نشد');return}
+  const PK='dakhlkharj_v1';let P=null;try{P=JSON.parse(localStorage.getItem(PK))}catch(e){}
+  if(!P||!P.months||!P.settings)P={v:1,settings:{},months:{},cur:null,tab:'dash',nid:1};
+  const pu=P.settings.unit||'تومان',su=S.settings.unit;
+  let amt=-d;if(su==='ریال'&&pu==='تومان')amt=Math.round(amt/10);else if(su==='تومان'&&pu==='ریال')amt=amt*10;
+  const date=todayJ(),jp=date.split('/'),k=jp[0]+'-'+jp[1];
+  const src='tankhah-'+m.id,title='تسویه تنخواه: '+m.title;let found=null;
+  for(const mk in P.months){const e=(P.months[mk].inc||[]).find(x=>x.src===src);if(e){found=e;break}}
+  if(found){found.amount=amt;found.title=title}
+  else{const pm=P.months[k]=P.months[k]||{carry:null,inc:[],exp:[]};pm.inc.push({id:P.nid++,cat:'بازپرداخت تنخواه',title,date,amount:amt,fix:false,src})}
+  try{localStorage.setItem(PK,JSON.stringify(P));toast(found?'مبلغ در بخش شخصی به‌روزرسانی شد':'در درآمدهای بخش شخصی ثبت شد')}catch(e){toast('ذخیره نشد')}
+}
+try{localStorage.setItem('last_section','tankhah')}catch(e){}
+if(!S.missions.length){const m=newMission();S.cur=m.id;save()}
+if(!cur()&&S.missions.length)S.cur=S.missions[0].id;
+renderAll();
+
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+</script>
+</body>
+</html>
